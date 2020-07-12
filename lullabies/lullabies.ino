@@ -1,9 +1,11 @@
 #include <SoftwareSerial.h>
 #include <DFRobotDFPlayerMini.h>
 
+#define NUM_FOLDERS   3
+
 #define LOOPS         2
 #define DELAY       300
-#define NUM_FOLDERS   3
+
 #define VOL_MAX      30
 #define VOL_MIN       1
 #define INC_VOL       3
@@ -13,13 +15,15 @@
 #define BUTTON_PAUSE     3
 #define BUTTON_PREV      4
 #define BUTTON_SELECT    5
-#define BUTTON_VOL_UP   12
-#define BUTTON_VOL_DOWN 13
 #define PIN_BUSY         6
 
-#define DEBUG_MODE false
+#define PIN_RX 8
+#define PIN_TX 9
 
-SoftwareSerial mySoftwareSerial(10, 11); // RX, TX
+#define BUTTON_VOL_UP   11
+#define BUTTON_VOL_DOWN 12
+
+SoftwareSerial mySoftwareSerial(PIN_RX, PIN_TX); 
 DFRobotDFPlayerMini myDFPlayer;
 
 
@@ -50,18 +54,17 @@ void setup() {
     digitalWrite(BUTTON_SELECT, HIGH);
     digitalWrite(BUTTON_VOL_UP, HIGH);
     digitalWrite(BUTTON_VOL_DOWN, HIGH);
-    
-    mySoftwareSerial.begin(9600);
-
-    if (DEBUG_MODE) {
-      Serial.begin(9600);
-      delay(DELAY);
-    }
-    
+   
     folder = 1;
     volume = 30;
+
+    // Serial.begin(9600);
     
+    mySoftwareSerial.begin(9600); 
+    delay(600);
     initDFPlayer();
+    
+     
     initSongLoops();
 }
 
@@ -79,7 +82,8 @@ void initSongLoops(){
     song = 1;
     do {
       songs = myDFPlayer.readFileCountsInFolder((int) folder);
-      delay(DELAY);
+      delay(600);
+      debugInfo((String)"Songs: " + songs);
     } while (songs < 1);
     play();
 }
@@ -120,6 +124,7 @@ void checkVolume(){
   
   
 }
+
 void checkLoop(){       
       if ( canPlay() & !isBusy() & !paused) {
             debugInfo("auto next"); 
@@ -137,8 +142,10 @@ void checkLoop(){
       }
 
 }
+
 void checkFolder(){
     if (digitalRead(BUTTON_SELECT) == LOW) {
+        debugInfo("select pressed");
         folder = folder + 1;
         if (folder > NUM_FOLDERS) {
           folder = 1;
@@ -149,8 +156,10 @@ void checkFolder(){
     
 
 }
+
 void checkNext(){
   if (digitalRead(BUTTON_NEXT) == LOW && canPlay()) {
+        debugInfo("next pressed");
         song++;
         if (song > songs ) {
           song=1;
@@ -163,6 +172,7 @@ void checkNext(){
 
 void checkPrev(){
     if (digitalRead(BUTTON_PREV) == LOW && canPlay()) {
+        debugInfo("prev pressed");
         song--;
         if (song<1){
           song = songs;
@@ -175,6 +185,7 @@ void checkPrev(){
 
 void checkPause(){
    if (digitalRead(BUTTON_PAUSE) == LOW && canPlay()) {
+        debugInfo("pause pressed");
         if (!paused) {
             myDFPlayer.pause();
             paused = true;
@@ -202,17 +213,20 @@ void printCurrentSong() {
    debugInfo( (String) "Folder:" + folder + "/" + NUM_FOLDERS +"; Song: " + song + "/" + songs + "; Loop " + loopCount + "/" + (String) LOOPS);
 }
 
-
 void initDFPlayer(){
+  delay(DELAY);
   
   if (!myDFPlayer.begin(mySoftwareSerial)) {
+    
         debugInfo("Unable to begin:");
         debugInfo("1.Please recheck the connection!");
         debugInfo("2.Please insert the SD card!");
-        while (true);
+
+        while(1); 
+        
     }
     
-    debugInfo(F("DFPlayer Mini online."));
+    debugInfo("DFPlayer Mini online.");
 
     myDFPlayer.setTimeOut(500);
     myDFPlayer.volume(volume); 
@@ -222,8 +236,7 @@ void initDFPlayer(){
 
 }
 
-void debugInfo(String message){
-  if (DEBUG_MODE){
-    Serial.println(message);
-  }
+
+void  debugInfo(String message){
+  // Serial.println(message);
 }
