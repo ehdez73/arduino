@@ -11,7 +11,7 @@
 ## Design
 ![Design](doc/img/design.png)
 
-## Items
+## Component list
 
 * 6 x Push buttons
 * 1 x Headphone speaker
